@@ -2,72 +2,112 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+- To create/init the project : 
+
 Run this command, to create the react-app inside the current folder :
 > npx create-react-app .
 
-## Available Scripts
+- To run the project locally : 
 
-In the project directory, you can run:
+Run the following command, in the project directory :
+>npm start
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+# New Tips :
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Tip 1 : <> ... </>
+- A javascript function can return only one thing (one element), that why, this code won't work because we are returning two elements (the ToDoList compo and the input html).
 
-### `npm test`
+```javascript
+function App() {
+  return (
+     <ToDoList />
+     <input type='text' />
+  );
+}
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
 
-### `npm run build`
+==> error msg :
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+ Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>?
+```
+- To fix this, we include both these two elemnts inside one parent elment :
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```javascript
+function App() {
+  return (
+    <>
+      <ToDoList />
+      <input type='text' />
+    </>
+  );
+}
+```
+## Tip 2 : State
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Set state in our react-app : the way that React works, is that React manages the state in the application and when that state changes, it re-render the app
 
-### `npm run eject`
+--> Stores these todos in the state, so whenever we change/ad/delete a todo, it will re-render the component tree
+--> In order to use state in a functional comp, we need to use a hook called "useState"
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```javascript
+const [todos, setToDos] = useState([]);
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Tip 3: using key when mapping a list of children components inside a parent:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- Sometimes, we encounter a bug, when we try to render a list of children components inside of the parent component:
 
-## Learn More
+```javascript
+export default function ToDoList({todos}) {
+    return (
+        <div>
+            {todos.map(todo => <ToDo todo={todo} />)}
+        </div>
+    )
+}
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---> error msg :
+```
+index.js:1 Warning: Each child in a list should have a unique "key" prop.
+Check the render method of `ToDoList`. 
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- The reason behind this bug is that react doesn't know how to update these children components, properly : everytime the main list (the todos list here) changes, react will re-render every single todo item in that list (even the ones that didn't change)
+===> We want React to render only the ones that changes
 
-### Code Splitting
+- Solution: add a `key` attribute in the child component, and set it to a unique value (for example the `todo.id`)
+This key attribute will help react to know which child component to render (only the one that changes) ==> which improves te efficiency of the app.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-### Analyzing the Bundle Size
+## Tip 4 : How to store data/state in the local storage :
+- Context: we can store data in the state of our component, but once we re-render that component after refreshing the page for example, the data stored in its state will dissapear, and it will be replaced by the default value (that we used in the useState hook).
+So, how can we persist the data of the todos that we add, without fearing that it will be removed from the state when we referesh the page ??
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- Solution: we can store these data in the localStorage, and then retrieve it once we mount our component again :
 
-### Making a Progressive Web App
+```javascript
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+// Unique Key to use to be able to access the localStorage for the specific data related to todos 
+const LOCAL_STORAGE_KEY = 'todoApp.todos';
 
-### Advanced Configuration
+// Using hook to recover data from the localStorage using the key, and then setting the State with the retrieved data
+// The array of dependency of useEffect is empty, which means that the effect in this hook is called only one time when we mount the component.
+useEffect(() => {
+    const storedTodos = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if(storedTodos && storedTodos.size !== 0){
+      setTodos(storedTodos);
+    }
+  }, [])
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+// Using hook to store data in the localStorage (the dep. array contains the todos list, which means that the effect of storing of data is done everytime the todos list changes) 
+useEffect(() => {
+   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
+   }, [todos])
+```
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Remarks: the data stored in the localStorage in a string format => we need to call JSON.stringfy(data) when storing data and call the JSON.parse(data) when we recover it from the localStorage.
