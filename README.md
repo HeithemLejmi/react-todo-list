@@ -2,6 +2,9 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+Run this command, to create the react-app inside the current folder :
+> npx create-react-app .
+
 ## Available Scripts
 
 In the project directory, you can run:
